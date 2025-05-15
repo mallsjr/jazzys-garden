@@ -2,16 +2,31 @@
 local TILE_WIDTH = 64
 local TILE_HEIGHT = 64
 local TILES = {}
+local player = {
+  x = 100,
+  y = 100,
+}
 
 function love.load()
   TILES = createTiles()
 end
 
-function love.update(dt) end
+function love.update(dt)
+  if love.keyboard.isDown("right") then
+    player.x = player.x + 4
+  elseif love.keyboard.isDown("left") then
+    player.x = player.x - 4
+  elseif love.keyboard.isDown("down") then
+    player.y = player.y + 4
+  elseif love.keyboard.isDown("up") then
+    player.y = player.y - 4
+  end
+end
 
 function love.draw()
-  love.graphics.print("hello love")
   drawTiles(TILES)
+  love.graphics.setColor(1, 1, 1)
+  love.graphics.rectangle("fill", player.x, player.y, TILE_WIDTH, TILE_HEIGHT)
 end
 
 function createTiles()
