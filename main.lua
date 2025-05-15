@@ -18,11 +18,22 @@ local TILES = {}
 ---@field y number
 ---@field width number
 ---@field height number
+---@field direction string
 local PLAYER = {
   x = 0, -- Start at the top-left corner of the grid
   y = 0, -- Start at the top-left corner of the grid
   height = 64, -- Assuming player is same size as tile for simplicity
   width = 64, -- Assuming player is same size as tile for simplicity
+  direction = "right", -- Default direction
+}
+
+---@type Tile
+local ADJACENT_TILE = {
+  x = PLAYER.x + TILE_WIDTH,
+  y = PLAYER.y,
+  width = TILE_WIDTH,
+  height = TILE_HEIGHT,
+  color = { 1, 0, 0 }, -- Red for the adjacent tile
 }
 
 function love.load()
@@ -34,8 +45,33 @@ function love.load()
 end
 
 function love.update(dt)
-  -- Remove continuous movement from update
-  -- Movement is now handled in keypressed
+  findAdjacentTile(PLAYER.direction)
+end
+
+function findAdjacentTile(direction)
+  -- Update the adjacent tile position based on the player's current position
+  -- and current direction.
+  if direction == "right" then
+    if PLAYER.x + TILE_WIDTH < love.graphics.getWidth() then
+      ADJACENT_TILE.x = PLAYER.x + TILE_WIDTH
+      ADJACENT_TILE.y = PLAYER.y
+    end
+  elseif direction == "left" then
+    if PLAYER.x - TILE_WIDTH >= 0 then
+      ADJACENT_TILE.x = PLAYER.x - TILE_WIDTH
+      ADJACENT_TILE.y = PLAYER.y
+    end
+  elseif direction == "down" then
+    if PLAYER.y + TILE_HEIGHT < love.graphics.getHeight() then
+      ADJACENT_TILE.x = PLAYER.x
+      ADJACENT_TILE.y = PLAYER.y + TILE_HEIGHT
+    end
+  elseif direction == "up" then
+    if PLAYER.y - TILE_HEIGHT >= 0 then
+      ADJACENT_TILE.x = PLAYER.x
+      ADJACENT_TILE.y = PLAYER.y - TILE_HEIGHT
+    end
+  end
 end
 
 function love.keypressed(key)
@@ -44,12 +80,16 @@ function love.keypressed(key)
 
   if key == "right" then
     newX = PLAYER.x + TILE_WIDTH
+    PLAYER.direction = "right"
   elseif key == "left" then
     newX = PLAYER.x - TILE_WIDTH
+    PLAYER.direction = "left"
   elseif key == "down" then
     newY = PLAYER.y + TILE_HEIGHT
+    PLAYER.direction = "down"
   elseif key == "up" then
     newY = PLAYER.y - TILE_HEIGHT
+    PLAYER.direction = "up"
   elseif key == "escape" then
     love.event.quit()
   end
@@ -70,6 +110,13 @@ function love.draw()
   -- Draw the player. Assuming PLAYER.x and PLAYER.y are the top-left
   -- corner coordinates for drawing.
   love.graphics.rectangle("fill", PLAYER.x, PLAYER.y, PLAYER.width, PLAYER.height)
+  love.graphics.setColor(ADJACENT_TILE.color)
+  -- set the thickness of the rectangle outline
+  love.graphics.setLineWidth(4)
+  love.graphics.rectangle("line", ADJACENT_TILE.x, ADJACENT_TILE.y, ADJACENT_TILE.width, ADJACENT_TILE.height)
+  -- Reset color and width for other drawings
+  love.graphics.setColor(1, 1, 1)
+  love.graphics.setLineWidth(1)
 end
 
 ---@return Tile[]
