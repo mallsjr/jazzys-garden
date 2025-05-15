@@ -20,11 +20,11 @@ local TILES = {}
 ---@field height number
 ---@field direction string
 local PLAYER = {
-  x = 0, -- Start at the top-left corner of the grid
-  y = 0, -- Start at the top-left corner of the grid
-  height = 64, -- Assuming player is same size as tile for simplicity
-  width = 64, -- Assuming player is same size as tile for simplicity
-  direction = "right", -- Default direction
+  x = 0,
+  y = 0,
+  height = 64,
+  width = 64,
+  direction = "right",
 }
 
 ---@type Tile
@@ -33,21 +33,18 @@ local ADJACENT_TILE = {
   y = PLAYER.y,
   width = TILE_WIDTH,
   height = TILE_HEIGHT,
-  color = { 1, 0, 0 }, -- Red for the adjacent tile
+  color = { 1, 0, 0 },
 }
 
 function love.load()
   TILES = createTiles()
-  -- Ensure player starts snapped to the grid.
-  -- The initial x=0, y=0 works for the top-left tile.
-  PLAYER.x = 0
-  PLAYER.y = 0
 end
 
 function love.update(dt)
   findAdjacentTile(PLAYER.direction)
 end
 
+---@param direction string
 function findAdjacentTile(direction)
   -- Update the adjacent tile position based on the player's current position
   -- and current direction.
@@ -120,6 +117,7 @@ function love.draw()
 end
 
 ---@return Tile[]
+--- Based on the dimensions of the screen, this function creates a grid of tiles.
 function createTiles()
   local screenWidth = love.graphics.getWidth()
   local screenHeight = love.graphics.getHeight()
@@ -127,11 +125,11 @@ function createTiles()
   local numTilesY = math.ceil(screenHeight / TILE_HEIGHT)
 
   local tiles = {}
-  for i = 0, numTilesX - 1 do -- Start from 0 for easier tile index calculation
-    for j = 0, numTilesY - 1 do -- Start from 0
+  for i = 0, numTilesX - 1 do
+    for j = 0, numTilesY - 1 do
       local tile = {
-        x = i * TILE_WIDTH, -- Calculate position based on index * size
-        y = j * TILE_HEIGHT, -- Calculate position based on index * size
+        x = i * TILE_WIDTH,
+        y = j * TILE_HEIGHT,
         width = TILE_WIDTH,
         height = TILE_HEIGHT,
         color = { math.random(), math.random(), math.random() },
@@ -143,6 +141,7 @@ function createTiles()
 end
 
 ---@param tiles Tile[]
+---Takes in a list of tiles and draws them on the screen.
 function drawTiles(tiles)
   for _, tile in ipairs(tiles) do
     love.graphics.setColor(tile.color)
