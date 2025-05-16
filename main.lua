@@ -1,4 +1,5 @@
 ---@diagnostic disable: lowercase-global
+local growable_tiles = require("growable_tiles")
 
 ---@class Tile
 ---@field x number
@@ -6,6 +7,7 @@
 ---@field width number
 ---@field height number
 ---@field color table
+---@field growable_area boolean
 
 local TILE_WIDTH = 64
 local TILE_HEIGHT = 64
@@ -34,6 +36,7 @@ local ADJACENT_TILE = {
   width = TILE_WIDTH,
   height = TILE_HEIGHT,
   color = { 1, 0, 0 },
+  growable_area = false,
 }
 
 function love.load()
@@ -87,6 +90,17 @@ function love.keypressed(key)
   elseif key == "up" then
     newY = PLAYER.y - TILE_HEIGHT
     PLAYER.direction = "up"
+  elseif key == "space" then
+    -- using adjacent tile x and y check if that tile is growable
+    for _, tile in ipairs(TILES) do
+      if tile.x == ADJACENT_TILE.x and tile.y == ADJACENT_TILE.y then
+        if tile.growable_area then
+          --change tile color to blue
+          tile.color = { 0, 0, 1 }
+          break
+        end
+      end
+    end
   elseif key == "escape" then
     love.event.quit()
   end
@@ -134,6 +148,15 @@ function createTiles()
         height = TILE_HEIGHT,
         color = { math.random(), math.random(), math.random() },
       }
+
+      -- TODO: Add logic to determine if the tile is growable
+      if growable_tiles[j + 1][i + 1] == 1 then
+        tile.growable_area = true
+        tile.color = { 0, 1, 0 } -- Green for growable tiles
+      else
+        tile.growable_area = false
+      end
+
       table.insert(tiles, tile)
     end
   end
