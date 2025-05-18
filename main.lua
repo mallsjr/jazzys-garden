@@ -1,4 +1,5 @@
 ---@diagnostic disable: lowercase-global
+local sti = require("libraries/Simple-Tiled-Implementation/sti")
 local growable_tiles = require("growable_tiles")
 
 ---@class Tile
@@ -40,10 +41,12 @@ local ADJACENT_TILE = {
 }
 
 function love.load()
+  gameMap = sti("assets/maps/map.lua")
   TILES = createTiles()
 end
 
 function love.update(dt)
+  gameMap:update(dt)
   findAdjacentTile(PLAYER.direction)
 end
 
@@ -115,7 +118,10 @@ function love.keypressed(key)
 end
 
 function love.draw()
-  drawTiles(TILES)
+  -- drawTiles(TILES)
+  love.graphics.setColor(1, 1, 1)
+  gameMap:drawLayer(gameMap.layers["dirt"])
+  gameMap:drawLayer(gameMap.layers["grass"])
   -- Set draw color to white for the player
   love.graphics.setColor(1, 1, 1)
   -- Draw the player. Assuming PLAYER.x and PLAYER.y are the top-left
