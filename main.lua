@@ -40,6 +40,8 @@ local ADJACENT_TILE = {
   growable_area = false,
 }
 
+local PLANTS = {}
+
 function love.load()
   gameMap = sti("assets/maps/map.lua")
   TILES = createTiles()
@@ -98,8 +100,16 @@ function love.keypressed(key)
     for _, tile in ipairs(TILES) do
       if tile.x == ADJACENT_TILE.x and tile.y == ADJACENT_TILE.y then
         if tile.growable_area then
-          --change tile color to blue
-          tile.color = { 0, 0, 1 }
+          -- loop through the plants and check if the plant is in the same position as the tile
+          -- set plant texture
+          for _, plant in ipairs(PLANTS) do
+            if plant.x == tile.x and plant.y == tile.y then
+              -- set the plant texture to the growable texture
+              plant.texture = love.graphics.newImage("assets/plant.png")
+              -- remove the tile from the list of tiles
+              tile.growable_area = false
+            end
+          end
           break
         end
       end
@@ -134,6 +144,13 @@ function love.draw()
   -- Reset color and width for other drawings
   love.graphics.setColor(1, 1, 1)
   love.graphics.setLineWidth(1)
+
+  -- loop through the plants and draw them
+  for _, plant in ipairs(PLANTS) do
+    if plant.texture then
+      love.graphics.draw(plant.texture, plant.x, plant.y)
+    end
+  end
 end
 
 ---@return Tile[]
@@ -155,14 +172,18 @@ function createTiles()
         color = { math.random(), math.random(), math.random() },
       }
 
-      -- TODO: Add logic to determine if the tile is growable
-      if growable_tiles[j + 1][i + 1] == 1 then
-        tile.growable_area = true
-        tile.color = { 0, 1, 0 } -- Green for growable tiles
-      else
-        tile.growable_area = false
-      end
+      for _, obj in pairs(gameMap.layers["grow"].objects) do
+        local plant = {}
+        plant.x = obj.x
+        plant.y = obj.y
 
+        if obj.x == tile.x and obj.y == tile.y then
+          tile.growable_area = true
+          tile.color = { 0, 1, 0 } -- Green for growable tiles
+        end
+
+        table.insert(PLANTS, plant)
+      end
       table.insert(tiles, tile)
     end
   end
