@@ -1,6 +1,7 @@
 ---@diagnostic disable: lowercase-global
 local sti = require("libraries/Simple-Tiled-Implementation/sti")
 local growable_tiles = require("growable_tiles")
+local anim8 = require("libraries/anim8/anim8")
 
 ---@class Tile
 ---@field x number
@@ -43,12 +44,19 @@ local ADJACENT_TILE = {
 local PLANTS = {}
 
 function love.load()
+  love.graphics.setDefaultFilter("nearest", "nearest")
   gameMap = sti("assets/maps/map.lua")
   TILES = createTiles()
+  rose_texture = love.graphics.newImage("assets/plant.png")
+  local grid = anim8.newGrid(16, 32, rose_texture:getWidth(), rose_texture:getHeight())
+
+  animations = {}
+  animations.grow = anim8.newAnimation(grid("3-6", 1), 10, "pauseAtEnd")
 end
 
 function love.update(dt)
   gameMap:update(dt)
+  animations.grow:update(dt)
   findAdjacentTile(PLAYER.direction)
 end
 
@@ -105,8 +113,7 @@ function love.keypressed(key)
           for _, plant in ipairs(PLANTS) do
             if plant.x == tile.x and plant.y == tile.y then
               -- set the plant texture to the growable texture
-              plant.texture = love.graphics.newImage("assets/plant.png")
-              -- remove the tile from the list of tiles
+              plant.texture = rose_texture
               tile.growable_area = false
             end
           end
@@ -148,7 +155,8 @@ function love.draw()
   -- loop through the plants and draw them
   for _, plant in ipairs(PLANTS) do
     if plant.texture then
-      love.graphics.draw(plant.texture, plant.x, plant.y)
+      -- love.graphics.draw(plant.texture, plant.x, plant.y)
+      animations.grow:draw(rose_texture, plant.x + 16, plant.y - 16, nil, 3, 3, 4, 8)
     end
   end
 end
