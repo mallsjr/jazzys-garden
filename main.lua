@@ -41,6 +41,12 @@ local ADJACENT_TILE = {
   growable_area = false,
 }
 
+---@class Plant
+---@field x number
+---@field y number
+---@field texture love.Image
+---@field animation any
+---@field planted boolean
 local PLANTS = {}
 
 function love.load()
@@ -48,16 +54,19 @@ function love.load()
   gameMap = sti("assets/maps/map.lua")
   TILES = createTiles()
   rose_texture = love.graphics.newImage("assets/plant.png")
-  local grid = anim8.newGrid(16, 32, rose_texture:getWidth(), rose_texture:getHeight())
-
-  animations = {}
-  animations.grow = anim8.newAnimation(grid("3-6", 1), 10, "pauseAtEnd")
+  grid = anim8.newGrid(16, 32, rose_texture:getWidth(), rose_texture:getHeight())
 end
 
 function love.update(dt)
   gameMap:update(dt)
-  animations.grow:update(dt)
   findAdjacentTile(PLAYER.direction)
+
+  -- Update animations for all planted plants
+  for _, plant in ipairs(PLANTS) do
+    if plant.planted and plant.animation then
+      plant.animation:update(dt)
+    end
+  end
 end
 
 ---@param direction string
@@ -108,14 +117,26 @@ function love.keypressed(key)
     for _, tile in ipairs(TILES) do
       if tile.x == ADJACENT_TILE.x and tile.y == ADJACENT_TILE.y then
         if tile.growable_area then
-          -- loop through the plants and check if the plant is in the same position as the tile
-          -- set plant texture
+          -- Check if there's already a planted plant at this location
+          local plantExists = false
           for _, plant in ipairs(PLANTS) do
-            if plant.x == tile.x and plant.y == tile.y then
-              -- set the plant texture to the growable texture
-              plant.texture = rose_texture
-              tile.growable_area = false
+            if plant.x == tile.x and plant.y == tile.y and plant.planted then
+              plantExists = true
+              break
             end
+          end
+
+          if not plantExists then
+            -- Create a new plant at this location
+            local newPlant = {
+              x = tile.x,
+              y = tile.y,
+              texture = rose_texture,
+              animation = anim8.newAnimation(grid("3-6", 1), 10, "pauseAtEnd"),
+              planted = true,
+            }
+            table.insert(PLANTS, newPlant)
+            tile.growable_area = false
           end
           break
         end
@@ -124,10 +145,6 @@ function love.keypressed(key)
   elseif key == "escape" then
     love.event.quit()
   end
-
-  -- Optional: Add bounds checking if you don't want the player
-  -- to move off-screen or outside the generated tiles.
-  -- For this example, we'll allow movement outside the initial tile area.
 
   -- Update player position to the new, snapped position
   PLAYER.x = newX
@@ -154,9 +171,8 @@ function love.draw()
 
   -- loop through the plants and draw them
   for _, plant in ipairs(PLANTS) do
-    if plant.texture then
-      -- love.graphics.draw(plant.texture, plant.x, plant.y)
-      animations.grow:draw(rose_texture, plant.x + 16, plant.y - 16, nil, 3, 3, 4, 8)
+    if plant.planted and plant.texture and plant.animation then
+      plant.animation:draw(plant.texture, plant.x + 16, plant.y - 16, nil, 3, 3, 4, 8)
     end
   end
 end
@@ -178,23 +194,31 @@ function createTiles()
         width = TILE_WIDTH,
         height = TILE_HEIGHT,
         color = { math.random(), math.random(), math.random() },
+        growable_area = false,
       }
 
-      for _, obj in pairs(gameMap.layers["grow"].objects) do
-        local plant = {}
-        plant.x = obj.x
-        plant.y = obj.y
-
-        if obj.x == tile.x and obj.y == tile.y then
-          tile.growable_area = true
-          tile.color = { 0, 1, 0 } -- Green for growable tiles
-        end
-
-        table.insert(PLANTS, plant)
-      end
       table.insert(tiles, tile)
     end
   end
+
+  -- Mark growable areas
+  for _, obj in pairs(gameMap.layers["grow"].objects) do
+    for _, tile in ipairs(tiles) do
+      if obj.x == tile.x and obj.y == tile.y then
+        tile.growable_area = true
+        tile.color = { 0, 1, 0 } -- Green for growable tiles
+      end
+    end
+
+    -- Initialize empty plants for tracking purposes
+    local plant = {
+      x = obj.x,
+      y = obj.y,
+      planted = false,
+    }
+    table.insert(PLANTS, plant)
+  end
+
   return tiles
 end
 
