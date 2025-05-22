@@ -1,6 +1,6 @@
 ---@diagnostic disable: lowercase-global
 local sti = require("libraries/Simple-Tiled-Implementation/sti")
-local growable_tiles = require("growable_tiles")
+-- local growable_tiles = require("growable_tiles")
 local anim8 = require("libraries/anim8/anim8")
 
 ---@class Tile
