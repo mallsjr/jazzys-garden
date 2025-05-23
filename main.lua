@@ -206,7 +206,8 @@ function createTiles()
     for _, tile in ipairs(tiles) do
       if obj.x == tile.x and obj.y == tile.y then
         tile.growable_area = true
-        tile.color = { 0, 1, 0 } -- Green for growable tiles
+        -- this really isn't needed we don't see the tiles
+        -- tile.color = { 0, 1, 0 } -- Green for growable tiles
       end
     end
 
